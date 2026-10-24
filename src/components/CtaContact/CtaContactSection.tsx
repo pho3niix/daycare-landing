@@ -4,6 +4,7 @@ import * as React from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import Container from '@mui/material/Container';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
@@ -13,12 +14,29 @@ import Typography from '@mui/material/Typography';
 const stages = ['Lactantes (0 a 18 meses)', 'Maternal (18 meses a 3 años)', 'Preescolar temprano (3 a 5 años)'];
 
 export default function CtaContactSection() {
-  const [sent, setSent] = React.useState(false);
+  const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    e.currentTarget.reset();
-    setSent(true);
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    setStatus('loading');
+    try {
+      const res = await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.get('name'),
+          phone: data.get('phone'),
+          stage: data.get('stage'),
+        }),
+      });
+      if (!res.ok) throw new Error('send failed');
+      form.reset();
+      setStatus('success');
+    } catch {
+      setStatus('error');
+    }
   };
 
   return (
@@ -51,8 +69,8 @@ export default function CtaContactSection() {
               recibirte.
             </Typography>
             <Box sx={{ display: 'grid', gap: 1 }}>
-              <Typography sx={{ color: '#fff' }}>📞 811 123 4567</Typography>
-              <Typography sx={{ color: '#fff', wordBreak: 'break-all' }}>✉️ direccion.delangel@gmail.com</Typography>
+              <Typography sx={{ color: '#fff' }}>📞 81 89011386</Typography>
+              <Typography sx={{ color: '#fff', wordBreak: 'break-all' }}>✉️ dulces.nombres@hotmail.com</Typography>
             </Box>
           </Box>
 
@@ -65,12 +83,15 @@ export default function CtaContactSection() {
               <Typography variant="h5">Agenda tu visita</Typography>
               <Typography variant="body2">Te contactaremos para confirmar disponibilidad.</Typography>
             </Box>
-            {sent && <Alert severity="success">¡Gracias! Te contactaremos muy pronto.</Alert>}
-            <TextField name="nombre" placeholder="Tu nombre" required fullWidth />
-            <TextField name="telefono" type="tel" placeholder="Teléfono" required fullWidth />
+            {status === 'success' && <Alert severity="success">¡Gracias! Te contactaremos muy pronto.</Alert>}
+            {status === 'error' && (
+              <Alert severity="error">No pudimos enviar tu solicitud. Intenta de nuevo o contáctanos por teléfono.</Alert>
+            )}
+            <TextField name="name" placeholder="Tu nombre" required fullWidth />
+            <TextField name="phone" type="tel" placeholder="Teléfono" required fullWidth />
             <TextField
               select
-              name="etapa"
+              name="stage"
               defaultValue=""
               required
               fullWidth
@@ -85,8 +106,16 @@ export default function CtaContactSection() {
                 </MenuItem>
               ))}
             </TextField>
-            <Button type="submit" variant="contained" color="primary" size="large" fullWidth>
-              Quiero conocerlos →
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              size="large"
+              fullWidth
+              disabled={status === 'loading'}
+              startIcon={status === 'loading' ? <CircularProgress size={18} color="inherit" /> : null}
+            >
+              {status === 'loading' ? 'Enviando...' : 'Quiero conocerlos →'}
             </Button>
           </Paper>
         </Box>

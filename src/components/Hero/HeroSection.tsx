@@ -45,11 +45,6 @@ export default function HeroSection() {
             </Button>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <AvatarGroup max={3}>
-              <Avatar sx={{ bgcolor: 'primary.main' }}>M</Avatar>
-              <Avatar sx={{ bgcolor: 'secondary.main' }}>A</Avatar>
-              <Avatar sx={{ bgcolor: 'honey.main', color: 'text.primary' }}>L</Avatar>
-            </AvatarGroup>
             <Typography variant="body2" sx={{ maxWidth: 320 }}>
               Una dirección pedagógica que acompaña a cada familia con corazón
             </Typography>

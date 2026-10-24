@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // /* Exportación estática equivalente al `dist` de Vue */
+  // output: "export",
+
+  // /* Tus configuraciones existentes */
   experimental: {
     agentFeedback: true,
   },
