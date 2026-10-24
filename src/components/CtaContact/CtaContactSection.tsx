@@ -15,24 +15,52 @@ const stages = ['Lactantes (0 a 18 meses)', 'Maternal (18 meses a 3 años)', 'Pr
 
 export default function CtaContactSection() {
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [phone, setPhone] = React.useState('');
+
+  // Helper para dar formato a la máscara de teléfono (10 dígitos: 81 8901 1386)
+  const formatPhoneNumber = (value: string) => {
+    // Extraer solo caracteres numéricos
+    const numbersOnly = value.replace(/\D/g, '');
+
+    // Limitar a 10 dígitos max (estándar de México)
+    const truncated = numbersOnly.slice(0, 10);
+
+    // Formatear: XX XXXX XXXX
+    if (truncated.length <= 2) {
+      return truncated;
+    }
+    if (truncated.length <= 6) {
+      return `${truncated.slice(0, 2)} ${truncated.slice(2)}`;
+    }
+    return `${truncated.slice(0, 2)} ${truncated.slice(2, 6)} ${truncated.slice(6, 10)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setPhone(formatted);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const data = new FormData(form);
     setStatus('loading');
+
     try {
       const res = await fetch('/api/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: data.get('name'),
-          phone: data.get('phone'),
+          phone: phone, // Teléfono con o sin espacios según la máscara
           stage: data.get('stage'),
         }),
       });
+
       if (!res.ok) throw new Error('send failed');
+
       form.reset();
+      setPhone(''); // Limpiar el estado controlado del teléfono
       setStatus('success');
     } catch {
       setStatus('error');
@@ -88,7 +116,19 @@ export default function CtaContactSection() {
               <Alert severity="error">No pudimos enviar tu solicitud. Intenta de nuevo o contáctanos por teléfono.</Alert>
             )}
             <TextField name="name" placeholder="Tu nombre" required fullWidth />
-            <TextField name="phone" type="tel" placeholder="Teléfono" required fullWidth />
+
+            {/* Input de teléfono con máscara de 10 dígitos */}
+            <TextField
+              name="phone"
+              type="tel"
+              placeholder="Teléfono (ej. 81 8901 1386)"
+              value={phone}
+              onChange={handlePhoneChange}
+              slotProps={{ htmlInput: { maxLength: 12 } }} // Limite visual con espacios
+              required
+              fullWidth
+            />
+
             <TextField
               select
               name="stage"
